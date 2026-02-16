@@ -108,6 +108,41 @@ Neither serves the developer who wants to "vibe" - iterate quickly while staying
 
 **Priority**: High - mentioned as key planned feature
 
+#### Multiple Concurrent Features (v2+)
+
+**User Story**: As a developer, I may work on multiple features in parallel (e.g., frontend + backend).
+
+**Implementation ideas**:
+- Change `.vibe/active-feature` to `.vibe/active-features` (list)
+- `vibe-status` shows all active features
+- `vibe-close` takes optional feature name argument
+- Hooks inject context for all active features (or just most recent?)
+
+**Open questions**:
+- Would multiple context injections be too much noise?
+- How to prevent confusion about which feature you're working on?
+- Is this solving a real problem or creating complexity?
+
+**Priority**: Medium - gather real usage feedback first
+
+#### Backlog Management (v2+)
+
+**User Story**: As a developer, I want outstanding work from closed features to be surfaced so I can choose when to address it.
+
+**Phase 1: features/BACKLOG.md**
+- `vibe-close` detects `[ ]` items in ADR "Outstanding Work" section
+- Offers to add them to `features/BACKLOG.md`
+- Auto-links back to source ADR for context
+- Human-editable for prioritization
+
+**Phase 2: GitHub Issues Integration**
+- Optional: create GitHub issues from backlog items
+- Auto-label with feature name
+- Link issue to ADR
+- Full GitHub workflow integration
+
+**Priority**: High - needed to surface work from ADRs
+
 #### Automated Evaluations (v2+)
 
 **User Story**: Verify skill behavior consistently across model updates
