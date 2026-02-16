@@ -26,8 +26,8 @@ When features are closed, they often have outstanding work that's not critical b
 - [ ] Test installation on fresh system
 
 **Minor script bugs**:
-- [ ] Fix grep errors in vibe-close (line 50-52 in output)
-- [ ] Fix head command issue in ADR generation
+- [x] Fix grep errors in vibe-close (line 50-52 in output) - FIXED: Added -F flag for literal matching
+- [x] Fix head command issue in ADR generation - FIXED: Changed to sed '$d' for portability
 
 **Nice-to-haves**:
 - [ ] Windows compatibility (currently bash/macOS/Linux only)
