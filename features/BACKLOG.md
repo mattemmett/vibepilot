@@ -37,6 +37,30 @@ When features are closed, they often have outstanding work that's not critical b
 
 ---
 
+### From ide-setup (In Progress - 2026-02-16)
+
+**Source**: [features/ide-setup/](ide-setup/)
+
+**Documentation improvements**:
+- [ ] Document functional differences between tools (SessionStart, PreCompact, Stop hooks)
+- [ ] Add workarounds for missing hooks in each tool
+- [ ] Create comparison table showing real-world UX impact
+- [ ] Add troubleshooting for "context lost after long sessions" (Cursor/Copilot)
+- [ ] Document manual context refresh workflows for tools missing SessionStart
+
+**Testing**:
+- [ ] Test Cursor setup in real project
+- [ ] Test GitHub Copilot setup in real project (must be on default branch)
+- [ ] Test Claude Code installation.md on fresh system
+- [ ] Validate hook script sync process across 3 locations
+
+**Nice-to-haves**:
+- [ ] Create unified overview guide linking to all three tool-specific guides
+- [ ] Add video walkthrough of multi-tool setup
+- [ ] Script to check hook script sync across .cursor/, .github/, skills/hooks/
+
+---
+
 ## Future Automation
 
 Currently manual, but `vibe-close` could:

@@ -32,6 +32,15 @@ VibePilot is a toolkit for vibe engineering - helping developers stay in control
 - Document the "why" not the "what"
 - No premature abstractions
 
+### Hook Scripts Maintenance
+- **IMPORTANT**: Hook scripts are duplicated for IDE compatibility
+  - Source: `skills/managing-vibe-sessions/hooks/`
+  - Cursor copy: `.cursor/hooks/`
+  - GitHub Copilot copy: `.github/hooks/`
+- When modifying hook logic, **update all three locations**
+- Reason: `.cursor/` and `.github/` directories must be self-contained for users to copy to their projects
+- Note: Not all hooks are in all locations (e.g., session-start.sh is in .github/ but not .cursor/)
+
 ### Testing Approach
 - Manual testing in real workflows first
 - Document test scenarios in feature planning/
