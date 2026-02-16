@@ -60,6 +60,13 @@ The hooks automatically inject feature context, remind you of progress, and pres
 
 ```
 vibepilot/                    # Toolkit repository
+├── README.md                 # Project overview
+├── LICENSE                   # GPL-3.0
+├── CREDITS.md               # Attribution
+├── agents.md                # Development guidelines (HOW)
+├── architecture.md          # Technical design (WHAT)
+├── product.md               # Requirements and roadmap (WHAT)
+│
 ├── skills/                   # Individual skills
 │   └── managing-vibe-sessions/
 │       ├── SKILL.md          # Main skill file
@@ -68,14 +75,13 @@ vibepilot/                    # Toolkit repository
 │       ├── reference/        # Additional docs
 │       └── evaluations/      # Test cases
 │
-├── features/                 # Our own dogfooding workspace
+├── features/                 # Dogfooding workspace
+│   ├── BACKLOG.md           # Outstanding work from closed features
 │   └── initial-development/
 │
-├── docs/                     # Development documentation
+├── docs/                     # Additional documentation
 │   └── development/
-│       ├── ARCHITECTURE.md
-│       ├── PRODUCT.md
-│       └── AGENTS.md
+│       └── CONTRIBUTING.md
 │
 └── templates/                # Templates for new work
 ```
@@ -84,9 +90,9 @@ vibepilot/                    # Toolkit repository
 
 Want to contribute or build your own skills?
 
-- **Architecture**: [docs/development/ARCHITECTURE.md](docs/development/ARCHITECTURE.md) - How VibePilot works
-- **Product Vision**: [docs/development/PRODUCT.md](docs/development/PRODUCT.md) - Requirements and roadmap
-- **Development Guidelines**: [docs/development/AGENTS.md](docs/development/AGENTS.md) - How to work on VibePilot
+- **Architecture**: [architecture.md](architecture.md) - How VibePilot works
+- **Product Vision**: [product.md](product.md) - Requirements and roadmap
+- **Development Guidelines**: [agents.md](agents.md) - How to work on VibePilot
 - **Contributing**: [docs/development/CONTRIBUTING.md](docs/development/CONTRIBUTING.md) - How to contribute
 
 ## Credits
