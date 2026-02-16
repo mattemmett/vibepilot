@@ -53,15 +53,15 @@ cat > "$ADR_FILE" <<EOF
 
 ## Context
 
-$(echo "$OVERVIEW" | sed -n '/## Overview/,/## Scope/p' | head -n -1 | tail -n +2)
+$(echo "$OVERVIEW" | sed -n '/## Overview/,/## Scope/p' | sed '$d' | tail -n +2)
 
 ## Decision
 
-$(echo "$DECISIONS" | grep -A 10 "**Decision**" | head -n 10 || echo "See implementation details below.")
+$(echo "$DECISIONS" | grep -F -A 10 "**Decision**" | head -n 10 || echo "See implementation details below.")
 
 ## Rationale
 
-$(echo "$DECISIONS" | grep -A 10 "**Rationale**" | head -n 10 || echo "See decisions log in context/")
+$(echo "$DECISIONS" | grep -F -A 10 "**Rationale**" | head -n 10 || echo "See decisions log in context/")
 
 ## Consequences
 
@@ -71,7 +71,7 @@ $(echo "$PROGRESS" | tail -20 || echo "See progress log in context/")
 
 ### Trade-offs
 
-$(echo "$DECISIONS" | grep -A 10 "**Consequences**" | head -n 10 || echo "Standard implementation trade-offs apply.")
+$(echo "$DECISIONS" | grep -F -A 10 "**Consequences**" | head -n 10 || echo "Standard implementation trade-offs apply.")
 
 ## Implementation Notes
 
