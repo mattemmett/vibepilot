@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+# VibePilot Start - Initialize a new vibe session
+
+set -euo pipefail
+
+FEATURE_NAME="${1:-}"
+DESCRIPTION="${2:-}"
+
+# Get project root (where .vibe directory lives or will live)
+PROJECT_ROOT="$(pwd)"
+
+# Interactive prompts if not provided
+if [[ -z "$FEATURE_NAME" ]]; then
+  echo "What are you working on? (1-2 sentences)"
+  read -r DESCRIPTION
+
+  # Suggest a feature name based on description
+  echo ""
+  echo "Suggested feature name (or provide your own):"
+  # Simple slug from description
+  SUGGESTED=$(echo "$DESCRIPTION" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//' | cut -c1-40)
+  read -r -p "[$SUGGESTED]: " FEATURE_NAME
+  FEATURE_NAME="${FEATURE_NAME:-$SUGGESTED}"
+fi
+
+# Clean feature name
+FEATURE_NAME=$(echo "$FEATURE_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')
+
+# Create feature workspace
+FEATURE_DIR="$PROJECT_ROOT/features/$FEATURE_NAME"
+
+if [[ -d "$FEATURE_DIR" ]]; then
+  echo "⚠️  Feature workspace already exists: $FEATURE_DIR"
+  read -r -p "Continue anyway? (y/N): " CONTINUE
+  if [[ ! "$CONTINUE" =~ ^[Yy]$ ]]; then
+    echo "Aborted."
+    exit 1
+  fi
+fi
+
+echo "Creating feature workspace: features/$FEATURE_NAME/"
+
+mkdir -p "$FEATURE_DIR"/{planning,decisions,context}
+
+# Create OVERVIEW.md
+cat > "$FEATURE_DIR/planning/OVERVIEW.md" <<EOF
+# Feature: $FEATURE_NAME
+
+## Overview
+
+$DESCRIPTION
+
+## Scope
+
+What's included:
+- [Define scope]
+
+What's NOT included:
+- [Define non-goals]
+
+## Goals
+
+1. [Primary goal]
+2. [Secondary goal]
+
+## Open Questions
+
+- [Questions to resolve]
+
+## Success Criteria
+
+- [ ] [What does done look like?]
+EOF
+
+# Create PLAN.md
+cat > "$FEATURE_DIR/planning/PLAN.md" <<EOF
+# Implementation Plan
+
+## Phase 1: [Phase Name]
+
+- [ ] [Task 1]
+- [ ] [Task 2]
+
+## Phase 2: [Phase Name]
+
+- [ ] [Task 1]
+- [ ] [Task 2]
+
+## Technical Decisions Needed
+
+- [Decision 1]
+- [Decision 2]
+EOF
+
+# Create PROGRESS.md
+cat > "$FEATURE_DIR/planning/PROGRESS.md" <<EOF
+# Progress Log
+
+## $(date +%Y-%m-%d) - Session Start
+
+Started working on $FEATURE_NAME.
+
+Initial goals:
+$DESCRIPTION
+
+---
+
+## Next Steps
+
+- Update PLAN.md with specific tasks
+- Define success criteria in OVERVIEW.md
+- Start implementation
+
+EOF
+
+# Create DECISIONS.md
+cat > "$FEATURE_DIR/planning/DECISIONS.md" <<EOF
+# Decisions Log
+
+Track key decisions here as you make them. Format:
+
+---
+
+## [Date]: [Decision Title]
+
+**Context**: [Why did this come up?]
+
+**Decision**: [What did you decide?]
+
+**Rationale**: [Why this choice?]
+
+**Consequences**: [What are the implications?]
+
+---
+
+EOF
+
+# Create .vibe directory if not exists
+mkdir -p "$PROJECT_ROOT/.vibe"
+
+# Set as active feature
+echo "$FEATURE_NAME" > "$PROJECT_ROOT/.vibe/active-feature"
+
+# Create session metadata
+cat > "$PROJECT_ROOT/.vibe/session.json" <<EOF
+{
+  "feature": "$FEATURE_NAME",
+  "started_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "description": "$DESCRIPTION"
+}
+EOF
+
+echo ""
+echo "✅ Vibe session started!"
+echo ""
+echo "Workspace: features/$FEATURE_NAME/"
+echo ""
+echo "Planning files created:"
+echo "  - planning/OVERVIEW.md"
+echo "  - planning/PLAN.md"
+echo "  - planning/PROGRESS.md"
+echo "  - planning/DECISIONS.md"
+echo ""
+echo "Next: Define your plan in planning/PLAN.md and start vibing!"
+echo ""
+echo "When done: /vibepilot close"
+
+exit 0

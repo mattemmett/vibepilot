@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+# VibePilot Close - Close vibe session and generate ADR
+
+set -euo pipefail
+
+PROJECT_ROOT="$(pwd)"
+
+# Check for active feature
+if [[ ! -f "$PROJECT_ROOT/.vibe/active-feature" ]]; then
+  echo "❌ No active vibe session found."
+  echo "Start one with: /vibepilot start"
+  exit 1
+fi
+
+FEATURE_NAME=$(cat "$PROJECT_ROOT/.vibe/active-feature")
+FEATURE_DIR="$PROJECT_ROOT/features/$FEATURE_NAME"
+
+if [[ ! -d "$FEATURE_DIR" ]]; then
+  echo "❌ Feature directory not found: $FEATURE_DIR"
+  exit 1
+fi
+
+echo "Closing vibe session: $FEATURE_NAME"
+echo ""
+
+# Read planning files
+OVERVIEW=""
+PLAN=""
+PROGRESS=""
+DECISIONS=""
+
+[[ -f "$FEATURE_DIR/planning/OVERVIEW.md" ]] && OVERVIEW=$(cat "$FEATURE_DIR/planning/OVERVIEW.md")
+[[ -f "$FEATURE_DIR/planning/PLAN.md" ]] && PLAN=$(cat "$FEATURE_DIR/planning/PLAN.md")
+[[ -f "$FEATURE_DIR/planning/PROGRESS.md" ]] && PROGRESS=$(cat "$FEATURE_DIR/planning/PROGRESS.md")
+[[ -f "$FEATURE_DIR/planning/DECISIONS.md" ]] && DECISIONS=$(cat "$FEATURE_DIR/planning/DECISIONS.md")
+
+# Generate ADR
+TIMESTAMP=$(date +%Y-%m-%d)
+ADR_FILE="$FEATURE_DIR/decisions/ADR-$TIMESTAMP-$FEATURE_NAME.md"
+
+# Count existing ADRs to get number
+ADR_NUM=$(find "$FEATURE_DIR/decisions" -name "ADR-*.md" 2>/dev/null | wc -l | tr -d ' ')
+ADR_NUM=$((ADR_NUM + 1))
+
+echo "Generating ADR..."
+
+cat > "$ADR_FILE" <<EOF
+# ADR $ADR_NUM: $FEATURE_NAME
+
+**Date**: $TIMESTAMP
+**Status**: Accepted
+**Feature**: $FEATURE_NAME
+
+## Context
+
+$(echo "$OVERVIEW" | sed -n '/## Overview/,/## Scope/p' | head -n -1 | tail -n +2)
+
+## Decision
+
+$(echo "$DECISIONS" | grep -A 10 "**Decision**" | head -n 10 || echo "See implementation details below.")
+
+## Rationale
+
+$(echo "$DECISIONS" | grep -A 10 "**Rationale**" | head -n 10 || echo "See decisions log in context/")
+
+## Consequences
+
+### What was built
+
+$(echo "$PROGRESS" | tail -20 || echo "See progress log in context/")
+
+### Trade-offs
+
+$(echo "$DECISIONS" | grep -A 10 "**Consequences**" | head -n 10 || echo "Standard implementation trade-offs apply.")
+
+## Implementation Notes
+
+### Key Changes
+
+- [Extracted from progress log]
+
+### Files Modified
+
+\`\`\`bash
+# Run this to see what changed:
+git diff main...$(git rev-parse --abbrev-ref HEAD) --name-only
+\`\`\`
+
+### Patterns Used
+
+[Document key patterns from the implementation]
+
+## Follow-up
+
+### Outstanding Work
+
+$(echo "$PLAN" | grep -E "^- \[ \]" || echo "None - feature complete")
+
+### Future Considerations
+
+- [Any future enhancements or refactoring]
+
+## References
+
+- Planning files: \`features/$FEATURE_NAME/context/\`
+- Related ADRs: [If any]
+
+EOF
+
+echo "✅ ADR generated: decisions/ADR-$TIMESTAMP-$FEATURE_NAME.md"
+echo ""
+
+# Create session summary
+SUMMARY_FILE="$FEATURE_DIR/context/SUMMARY-$TIMESTAMP.md"
+
+cat > "$SUMMARY_FILE" <<EOF
+# Session Summary: $FEATURE_NAME
+
+**Date**: $TIMESTAMP
+
+## What Was Built
+
+$(echo "$PROGRESS" | tail -30)
+
+## Key Decisions
+
+$(echo "$DECISIONS")
+
+## Outcome
+
+Feature completed and closed. See ADR-$TIMESTAMP-$FEATURE_NAME.md for full details.
+
+EOF
+
+echo "✅ Session summary: context/SUMMARY-$TIMESTAMP.md"
+echo ""
+
+# Check for context file updates needed
+echo "Checking context files..."
+CONTEXT_UPDATES=""
+
+# Check if we should update architecture.md
+if git diff --name-only 2>/dev/null | grep -qE "src/|lib/|components/"; then
+  CONTEXT_UPDATES+="⚠️  Code changes detected - review architecture.md for updates\n"
+fi
+
+# Check for new agents.md needs
+if git diff --name-only 2>/dev/null | grep -qE "agents\.md"; then
+  CONTEXT_UPDATES+="⚠️  agents.md was modified - verify changes\n"
+fi
+
+# Check for product changes
+if echo "$OVERVIEW" | grep -qE "feature|requirement|product"; then
+  CONTEXT_UPDATES+="⚠️  New feature added - consider updating product.md\n"
+fi
+
+if [[ -n "$CONTEXT_UPDATES" ]]; then
+  echo ""
+  echo "Context Updates Needed:"
+  echo -e "$CONTEXT_UPDATES"
+else
+  echo "✅ No context file updates needed"
+fi
+
+echo ""
+
+# Clean up planning directory
+echo "Cleaning up planning files..."
+if [[ -d "$FEATURE_DIR/planning" ]]; then
+  # Archive to context instead of deleting
+  tar -czf "$FEATURE_DIR/context/planning-archive-$TIMESTAMP.tar.gz" -C "$FEATURE_DIR" planning/ 2>/dev/null || true
+  rm -rf "$FEATURE_DIR/planning"
+  echo "✅ Planning files archived to context/planning-archive-$TIMESTAMP.tar.gz"
+fi
+
+echo ""
+
+# Clear active feature
+rm -f "$PROJECT_ROOT/.vibe/active-feature"
+rm -f "$PROJECT_ROOT/.vibe/session.json"
+
+echo "════════════════════════════════════════════════════════════"
+echo "✅ Vibe session closed!"
+echo ""
+echo "📄 ADR: features/$FEATURE_NAME/decisions/ADR-$TIMESTAMP-$FEATURE_NAME.md"
+echo "📋 Summary: features/$FEATURE_NAME/context/SUMMARY-$TIMESTAMP.md"
+echo ""
+echo "Feature workspace preserved at: features/$FEATURE_NAME/"
+echo "════════════════════════════════════════════════════════════"
+
+exit 0

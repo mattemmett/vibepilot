@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# VibePilot Status - Show current vibe session status
+
+set -euo pipefail
+
+PROJECT_ROOT="$(pwd)"
+
+echo "VibePilot Status"
+echo "════════════════════════════════════════════════════════════"
+echo ""
+
+# Check for active feature
+if [[ ! -f "$PROJECT_ROOT/.vibe/active-feature" ]]; then
+  echo "Status: No active vibe session"
+  echo ""
+
+  # Show recent features
+  if [[ -d "$PROJECT_ROOT/features" ]]; then
+    RECENT=$(find "$PROJECT_ROOT/features" -mindepth 1 -maxdepth 1 -type d -exec stat -f "%m %N" {} \; 2>/dev/null | sort -rn | head -3 | cut -d' ' -f2- | xargs -I {} basename {} 2>/dev/null || echo "")
+
+    if [[ -n "$RECENT" ]]; then
+      echo "Recent features:"
+      echo "$RECENT" | while read -r feat; do
+        echo "  - $feat"
+      done
+      echo ""
+    fi
+  fi
+
+  echo "Start a session: /vibepilot start"
+  exit 0
+fi
+
+FEATURE_NAME=$(cat "$PROJECT_ROOT/.vibe/active-feature")
+FEATURE_DIR="$PROJECT_ROOT/features/$FEATURE_NAME"
+
+echo "Status: Active vibe session"
+echo "Feature: $FEATURE_NAME"
+echo ""
+
+# Show session info
+if [[ -f "$PROJECT_ROOT/.vibe/session.json" ]]; then
+  STARTED=$(jq -r '.started_at // "unknown"' "$PROJECT_ROOT/.vibe/session.json" 2>/dev/null || echo "unknown")
+  DESCRIPTION=$(jq -r '.description // ""' "$PROJECT_ROOT/.vibe/session.json" 2>/dev/null || echo "")
+
+  echo "Started: $STARTED"
+  if [[ -n "$DESCRIPTION" ]]; then
+    echo "Description: $DESCRIPTION"
+  fi
+  echo ""
+fi
+
+# Show progress
+if [[ -f "$FEATURE_DIR/planning/PROGRESS.md" ]]; then
+  echo "Recent Progress:"
+  echo "────────────────────────────────────────────────────────────"
+  tail -10 "$FEATURE_DIR/planning/PROGRESS.md"
+  echo ""
+fi
+
+# Show plan status
+if [[ -f "$FEATURE_DIR/planning/PLAN.md" ]]; then
+  TOTAL_TASKS=$(grep -c "^- \[" "$FEATURE_DIR/planning/PLAN.md" 2>/dev/null || echo "0")
+  DONE_TASKS=$(grep -c "^- \[x\]" "$FEATURE_DIR/planning/PLAN.md" 2>/dev/null || echo "0")
+
+  if [[ "$TOTAL_TASKS" -gt 0 ]]; then
+    echo "Plan Progress: $DONE_TASKS / $TOTAL_TASKS tasks completed"
+    echo ""
+  fi
+fi
+
+# Show workspace location
+echo "Workspace: features/$FEATURE_NAME/"
+echo ""
+echo "Close session: /vibepilot close"
+echo "════════════════════════════════════════════════════════════"
+
+exit 0
